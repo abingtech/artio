@@ -36,24 +36,26 @@ public final class BuyerApplication
 
     public static void main(final String[] args) throws InterruptedException
     {
+        // 设置通道的连接参数
         System.setProperty(CONTROL_CHANNEL_PROP_NAME, "aeron:udp?endpoint=localhost:9010");
         System.setProperty(CONTROL_RESPONSE_CHANNEL_PROP_NAME, "aeron:udp?endpoint=localhost:9020");
         System.setProperty(REPLICATION_CHANNEL_PROP_NAME, "aeron:udp?endpoint=localhost:0");
-
+        // 创建 MediaDriver 的上下文
         final MediaDriver.Context context = new MediaDriver.Context()
             .threadingMode(SHARED)
             .dirDeleteOnStart(true)
             .aeronDirectoryName(AERON_DIRECTORY_NAME);
-
+        // 创建 Archive 的上下文
         final Archive.Context archiveContext = new Archive.Context()
             .threadingMode(ArchiveThreadingMode.SHARED)
             .deleteArchiveOnStart(true)
             .aeronDirectoryName(AERON_DIRECTORY_NAME)
             .recordingEventsChannel(RECORDING_EVENTS_CHANNEL)
             .archiveDirectoryName(AERON_ARCHIVE_DIRECTORY_NAME);
-
+        // 启动一个带归档功能的 MediaDriver
         try (ArchivingMediaDriver driver = ArchivingMediaDriver.launch(context, archiveContext))
         {
+            // 基于 MediaDriver 运行一个 agent
             SampleUtil.runAgentUntilSignal(
                 new BuyerAgent(),
                 driver.mediaDriver());

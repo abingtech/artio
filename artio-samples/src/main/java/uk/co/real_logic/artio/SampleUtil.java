@@ -41,6 +41,7 @@ public final class SampleUtil
     public static void runAgentUntilSignal(
         final Agent agent, final MediaDriver mediaDriver) throws InterruptedException
     {
+        // 为了夸进程可观测
         final AtomicCounter errorCounter =
             mediaDriver.context().countersManager().newCounter("exchange_agent_errors");
         final AgentRunner runner = new AgentRunner(
@@ -52,13 +53,14 @@ public final class SampleUtil
         final Thread thread = AgentRunner.startOnThread(runner);
 
         final AtomicBoolean running = new AtomicBoolean(true);
+        // 进程关闭信号会 hook
         try (ShutdownSignalBarrier barrier = new ShutdownSignalBarrier(() -> running.set(false)))
         {
             while (running.get())
             {
                 Thread.sleep(100);
             }
-
+            // 进程退出时需要等待工作线程执行完关闭资源的操作
             thread.join();
         }
     }
